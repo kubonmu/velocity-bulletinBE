@@ -18,9 +18,6 @@ type Config struct {
 	CORSOrigins       []string
 	AdminEmail        string
 	AdminPassword     string
-	AWSRegion         string
-	S3Bucket          string
-	S3PublicBaseURL   string
 	DBMaxOpenConns    int
 	DBMaxIdleConns    int
 	DBConnMaxLifetime time.Duration
@@ -38,15 +35,12 @@ func LoadDatabase() (Config, error) {
 
 func load(requireJWT bool) (Config, error) {
 	cfg := Config{
-		HTTPAddr:        env("HTTP_ADDR", ":8080"),
-		DatabaseURL:     strings.TrimSpace(os.Getenv("DATABASE_URL")),
-		MigrationDBURL:  strings.TrimSpace(os.Getenv("MIGRATION_DATABASE_URL")),
-		JWTSecret:       strings.TrimSpace(os.Getenv("JWT_SECRET")),
-		AdminEmail:      strings.ToLower(strings.TrimSpace(os.Getenv("ADMIN_EMAIL"))),
-		AdminPassword:   strings.TrimSpace(os.Getenv("ADMIN_PASSWORD")),
-		AWSRegion:       env("AWS_REGION", "ap-northeast-2"),
-		S3Bucket:        strings.TrimSpace(os.Getenv("S3_BUCKET")),
-		S3PublicBaseURL: strings.TrimRight(strings.TrimSpace(os.Getenv("S3_PUBLIC_BASE_URL")), "/"),
+		HTTPAddr:       env("HTTP_ADDR", ":8080"),
+		DatabaseURL:    strings.TrimSpace(os.Getenv("DATABASE_URL")),
+		MigrationDBURL: strings.TrimSpace(os.Getenv("MIGRATION_DATABASE_URL")),
+		JWTSecret:      strings.TrimSpace(os.Getenv("JWT_SECRET")),
+		AdminEmail:     strings.ToLower(strings.TrimSpace(os.Getenv("ADMIN_EMAIL"))),
+		AdminPassword:  strings.TrimSpace(os.Getenv("ADMIN_PASSWORD")),
 	}
 	var problems []string
 	var err error
@@ -89,8 +83,6 @@ func (c Config) MigrationURL() string {
 	return c.DatabaseURL
 }
 
-func (c Config) UploadsEnabled() bool { return c.S3Bucket != "" }
-
 func env(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -123,5 +115,5 @@ func envDuration(key string, fallback time.Duration) (time.Duration, error) {
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("addr=%s uploads=%t", c.HTTPAddr, c.UploadsEnabled())
+	return fmt.Sprintf("addr=%s", c.HTTPAddr)
 }

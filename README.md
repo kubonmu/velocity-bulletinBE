@@ -1,6 +1,6 @@
 # Velocity Bulletin Backend
 
-Go, Gin, GORM, PostgreSQL로 만든 의도적으로 작고 단순한 게시판 API입니다. ECS Fargate 위에서 상태 없는(stateless) 컨테이너로 동작하도록 설계되었으며, PostgreSQL은 Neon을, 이미지 업로드는 선택적으로 S3를 사용합니다.
+Go, Gin, GORM, PostgreSQL로 만든 의도적으로 작고 단순한 게시판 API입니다. ECS Fargate 위에서 상태 없는(stateless) 컨테이너로 동작하도록 설계되었으며, PostgreSQL은 Neon을 사용합니다.
 
 ## 주요 기능
 
@@ -9,7 +9,6 @@ Go, Gin, GORM, PostgreSQL로 만든 의도적으로 작고 단순한 게시판 A
 - 카테고리(`GENERAL`, `QUESTION`), 이미지 메타데이터, 검색, 최신순 정렬, 페이지네이션를 지원하는 게시글 CRUD
 - 댓글 CRUD
 - `USER`/`ADMIN` 권한 분리 — 사용자 비활성화는 관리자만 가능
-- JPEG, PNG, WebP(최대 5MB) 파일에 대한 10분짜리 S3 presigned PUT URL(선택 사항)
 - JSON 접속 로그, 요청 ID, liveness/readiness 프로브, 정상 종료(graceful shutdown)
 - GORM 모델 기반 AutoMigrate와 멱등성(idempotent)을 보장하는 관리자 시드 명령
 
@@ -45,9 +44,6 @@ curl -X POST http://localhost:8080/api/v1/auth/register \
 | `JWT_TTL` | 액세스 토큰 유효 기간 | `1h` |
 | `CORS_ORIGINS` | 콤마로 구분된 프론트엔드 origin 목록 | `http://localhost:3000` |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | `cmd/seed`에서 사용하는 값 | 서버 실행 시 선택 |
-| `AWS_REGION` | S3 리전 | `ap-northeast-2` |
-| `S3_BUCKET` | 업로드 버킷, 비워두면 업로드 기능 비활성화 | 비어 있음 |
-| `S3_PUBLIC_BASE_URL` | CloudFront 또는 공개 S3 오브젝트 base URL | 비어 있음 |
 
 ECS에서는 데이터베이스 URL, JWT 시크릿 등의 민감한 값을 태스크 정의의 Secrets Manager 참조를 통해 주입하세요. 애플리케이션은 오직 환경 변수만 읽기 때문에 시크릿 제공 방식에 종속되지 않습니다.
 
@@ -87,3 +83,6 @@ DB 구조는 `internal/model/model.go`의 GORM 모델과 태그로 관리합니�
 ## 라이선스
 
 이 프로젝트는 [MIT 라이선스](./LICENSE)를 따릅니다.
+
+
+이미지 업로드 및 게시글 이미지 첨부는 지원하지 않습니다. 기존 `post_images` 테이블과 S3 파일은 자동 삭제하지 않으며, 더 이상 API에서 조회하거나 변경하지 않습니다.

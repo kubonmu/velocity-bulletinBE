@@ -177,26 +177,6 @@ paths:
       summary: Soft-delete a comment owned by the current user
       responses:
         "204": {description: Comment deleted}
-  /api/v1/uploads/presign:
-    post:
-      tags: [Uploads]
-      security: [{bearerAuth: []}]
-      summary: Create a ten-minute S3 PUT URL
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [filename, contentType, size]
-              properties:
-                filename: {type: string}
-                contentType: {type: string, enum: [image/jpeg, image/png, image/webp]}
-                size: {type: integer, maximum: 5242880}
-      responses:
-        "200": {description: Presigned upload details}
-        "400": {$ref: "#/components/responses/Error"}
-        "503": {$ref: "#/components/responses/Error"}
   /api/v1/admin/users:
     get:
       tags: [Admin]
@@ -288,11 +268,6 @@ components:
         displayName: {type: string}
         role: {type: string, enum: [USER, ADMIN]}
         active: {type: boolean}
-    Image:
-      type: object
-      required: [objectKey]
-      properties:
-        objectKey: {type: string, pattern: "^media/[0-9a-f-]{36}\\.(jpg|png|webp)$"}
     PostWriteRequest:
       type: object
       required: [title, body, category]
@@ -300,10 +275,6 @@ components:
         title: {type: string, minLength: 2, maxLength: 200}
         body: {type: string, minLength: 1}
         category: {$ref: "#/components/schemas/Category"}
-        images:
-          type: array
-          maxItems: 5
-          items: {$ref: "#/components/schemas/Image"}
     CommentWriteRequest:
       type: object
       required: [body]

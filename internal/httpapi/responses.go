@@ -13,15 +13,14 @@ type publicAuthor struct {
 }
 
 type postResponse struct {
-	ID        uuid.UUID         `json:"id"`
-	AuthorID  uuid.UUID         `json:"authorId"`
-	Author    publicAuthor      `json:"author"`
-	Title     string            `json:"title"`
-	Body      string            `json:"body"`
-	Category  model.Category    `json:"category"`
-	Images    []model.PostImage `json:"images"`
-	CreatedAt time.Time         `json:"createdAt"`
-	UpdatedAt time.Time         `json:"updatedAt"`
+	ID        uuid.UUID      `json:"id"`
+	AuthorID  uuid.UUID      `json:"authorId"`
+	Author    publicAuthor   `json:"author"`
+	Title     string         `json:"title"`
+	Body      string         `json:"body"`
+	Category  model.Category `json:"category"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 }
 
 type commentResponse struct {
@@ -39,7 +38,6 @@ func presentPost(post *model.Post) postResponse {
 		ID: post.ID, AuthorID: post.AuthorID,
 		Author: publicAuthor{ID: post.Author.ID, DisplayName: post.Author.DisplayName},
 		Title:  post.Title, Body: post.Body, Category: post.Category,
-		Images:    post.Images,
 		CreatedAt: post.CreatedAt, UpdatedAt: post.UpdatedAt,
 	}
 }

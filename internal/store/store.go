@@ -91,7 +91,7 @@ func (s *Store) CreatePost(ctx context.Context, post *model.Post) error {
 func (s *Store) PostByID(ctx context.Context, id uuid.UUID) (*model.Post, error) {
 	var post model.Post
 	err := s.db.WithContext(ctx).
-		Preload("Author").Preload("Images", func(db *gorm.DB) *gorm.DB { return db.Order("position ASC") }).
+		Preload("Author").
 		First(&post, "id = ?", id).Error
 	if err != nil {
 		return nil, err
@@ -113,29 +113,15 @@ func (s *Store) ListPosts(ctx context.Context, f PostFilter) ([]model.Post, int6
 		return nil, 0, err
 	}
 	var posts []model.Post
-	err := q.Preload("Author").Preload("Images", func(db *gorm.DB) *gorm.DB { return db.Order("position ASC") }).
+	err := q.Preload("Author").
 		Order("created_at DESC").Offset((f.Page - 1) * f.Size).Limit(f.Size).Find(&posts).Error
 	return posts, total, err
 }
 
-func (s *Store) UpdatePost(ctx context.Context, post *model.Post, replaceImages bool) error {
-	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&model.Post{}).Where("id = ?", post.ID).Updates(map[string]any{
-			"title": post.Title, "body": post.Body, "category": post.Category,
-		}).Error; err != nil {
-			return err
-		}
-		if !replaceImages {
-			return nil
-		}
-		if err := tx.Where("post_id = ?", post.ID).Delete(&model.PostImage{}).Error; err != nil {
-			return err
-		}
-		if len(post.Images) > 0 {
-			return tx.Create(&post.Images).Error
-		}
-		return nil
-	})
+func (s *Store) UpdatePost(ctx context.Context, post *model.Post) error {
+	return s.db.WithContext(ctx).Model(&model.Post{}).Where("id = ?", post.ID).Updates(map[string]any{
+		"title": post.Title, "body": post.Body, "category": post.Category,
+	}).Error
 }
 
 func (s *Store) DeletePost(ctx context.Context, id uuid.UUID) error {
