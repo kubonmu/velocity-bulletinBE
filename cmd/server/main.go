@@ -16,7 +16,6 @@ import (
 	"github.com/m161awm2/velocity-bulletinBE/internal/httpapi"
 	"github.com/m161awm2/velocity-bulletinBE/internal/service"
 	"github.com/m161awm2/velocity-bulletinBE/internal/store"
-	"github.com/m161awm2/velocity-bulletinBE/internal/upload"
 )
 
 func main() {
@@ -34,13 +33,8 @@ func main() {
 		os.Exit(1)
 	}
 	st := store.New(db)
-	svc := service.New(st, cfg.S3PublicBaseURL)
-	uploads, err := upload.New(ctx, cfg.AWSRegion, cfg.S3Bucket, cfg.S3PublicBaseURL)
-	if err != nil {
-		logger.Error("upload service startup failed", "error", err)
-		os.Exit(1)
-	}
-	router := httpapi.New(svc, st, auth.New(cfg.JWTSecret, cfg.JWTTTL), uploads, logger, cfg.CORSOrigins)
+	svc := service.New(st)
+	router := httpapi.New(svc, st, auth.New(cfg.JWTSecret, cfg.JWTTTL), logger, cfg.CORSOrigins)
 	server := &http.Server{
 		Addr: cfg.HTTPAddr, Handler: router, ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second,

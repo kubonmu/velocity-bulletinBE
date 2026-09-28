@@ -6,22 +6,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/m161awm2/velocity-bulletinBE/internal/model"
-	"github.com/m161awm2/velocity-bulletinBE/internal/service"
 	"github.com/m161awm2/velocity-bulletinBE/internal/store"
 )
 
 type postRequest struct {
-	Title    string               `json:"title" binding:"required"`
-	Body     string               `json:"body" binding:"required"`
-	Category model.Category       `json:"category" binding:"required"`
-	Images   []service.ImageInput `json:"images"`
+	Title    string         `json:"title" binding:"required"`
+	Body     string         `json:"body" binding:"required"`
+	Category model.Category `json:"category" binding:"required"`
 }
 
 type updatePostRequest struct {
-	Title    string                `json:"title" binding:"required"`
-	Body     string                `json:"body" binding:"required"`
-	Category model.Category        `json:"category" binding:"required"`
-	Images   *[]service.ImageInput `json:"images"`
+	Title    string         `json:"title" binding:"required"`
+	Body     string         `json:"body" binding:"required"`
+	Category model.Category `json:"category" binding:"required"`
 }
 
 func (a *API) createPost(c *gin.Context) {
@@ -29,7 +26,7 @@ func (a *API) createPost(c *gin.Context) {
 	if !bind(c, &request) {
 		return
 	}
-	post, err := a.service.CreatePost(c.Request.Context(), actor(c), request.Title, request.Body, request.Category, request.Images)
+	post, err := a.service.CreatePost(c.Request.Context(), actor(c), request.Title, request.Body, request.Category)
 	if err != nil {
 		serviceError(c, err)
 		return
@@ -79,7 +76,7 @@ func (a *API) updatePost(c *gin.Context) {
 	if !bind(c, &request) {
 		return
 	}
-	post, err := a.service.UpdatePost(c.Request.Context(), actor(c), id, request.Title, request.Body, request.Category, request.Images)
+	post, err := a.service.UpdatePost(c.Request.Context(), actor(c), id, request.Title, request.Body, request.Category)
 	if err != nil {
 		serviceError(c, err)
 		return

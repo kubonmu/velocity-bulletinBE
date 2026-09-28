@@ -11,11 +11,12 @@ import (
 )
 
 func TestRemovedPostFeatures(t *testing.T) {
-	router := New(nil, nil, nil, nil, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
+	router := New(nil, nil, nil, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
 	for _, tc := range []struct {
 		method, path string
 		status       int
 	}{
+		{"POST", "/api/v1/uploads/presign", 404},
 		{"GET", "/api/v1/posts?sort=likes", 400},
 		{"GET", "/api/v1/posts?sort=views", 400},
 		{"GET", "/api/v1/posts?category=NOTICE", 400},
@@ -35,7 +36,7 @@ func TestRemovedPostFeatures(t *testing.T) {
 	if err := json.Unmarshal(encoded, &response); err != nil {
 		t.Fatal(err)
 	}
-	for _, field := range []string{"viewCount", "likeCount"} {
+	for _, field := range []string{"viewCount", "likeCount", "images"} {
 		if _, exists := response[field]; exists {
 			t.Errorf("removed field %s still returned", field)
 		}

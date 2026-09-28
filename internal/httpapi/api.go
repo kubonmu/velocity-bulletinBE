@@ -15,7 +15,6 @@ import (
 	"github.com/m161awm2/velocity-bulletinBE/internal/model"
 	"github.com/m161awm2/velocity-bulletinBE/internal/service"
 	"github.com/m161awm2/velocity-bulletinBE/internal/store"
-	"github.com/m161awm2/velocity-bulletinBE/internal/upload"
 )
 
 const actorKey = "actor"
@@ -24,12 +23,11 @@ type API struct {
 	service *service.Service
 	store   *store.Store
 	tokens  *auth.Manager
-	uploads *upload.Service
 	logger  *slog.Logger
 }
 
-func New(svc *service.Service, st *store.Store, tokens *auth.Manager, uploads *upload.Service, logger *slog.Logger, corsOrigins []string) *gin.Engine {
-	a := &API{service: svc, store: st, tokens: tokens, uploads: uploads, logger: logger}
+func New(svc *service.Service, st *store.Store, tokens *auth.Manager, logger *slog.Logger, corsOrigins []string) *gin.Engine {
+	a := &API{service: svc, store: st, tokens: tokens, logger: logger}
 	r := gin.New()
 	r.Use(a.requestID(), a.accessLog(), gin.Recovery(), cors(corsOrigins), bodyLimit(1<<20))
 	r.GET("/health/live", a.live)
@@ -54,7 +52,6 @@ func New(svc *service.Service, st *store.Store, tokens *auth.Manager, uploads *u
 	secured.POST("/posts/:id/comments", a.createComment)
 	secured.PUT("/comments/:id", a.updateComment)
 	secured.DELETE("/comments/:id", a.deleteComment)
-	secured.POST("/uploads/presign", a.presignUpload)
 
 	admin := secured.Group("/admin")
 	admin.Use(a.requireAdmin())

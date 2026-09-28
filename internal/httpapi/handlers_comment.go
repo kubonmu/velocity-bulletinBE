@@ -1,11 +1,9 @@
 package httpapi
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/m161awm2/velocity-bulletinBE/internal/upload"
 )
 
 func (a *API) listComments(c *gin.Context) {
@@ -70,25 +68,4 @@ func (a *API) deleteComment(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
-}
-
-func (a *API) presignUpload(c *gin.Context) {
-	var request struct {
-		Filename    string `json:"filename" binding:"required"`
-		ContentType string `json:"contentType" binding:"required"`
-		Size        int64  `json:"size" binding:"required"`
-	}
-	if !bind(c, &request) {
-		return
-	}
-	result, err := a.uploads.Presign(c.Request.Context(), request.Filename, request.ContentType, request.Size)
-	if errors.Is(err, upload.ErrDisabled) {
-		fail(c, http.StatusServiceUnavailable, "UPLOADS_DISABLED", err.Error())
-		return
-	}
-	if err != nil {
-		fail(c, http.StatusBadRequest, "INVALID_UPLOAD", err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, result)
 }

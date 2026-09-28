@@ -42,7 +42,7 @@ func Migrate(db *gorm.DB) error {
 				}
 			}
 		}
-		if err := tx.AutoMigrate(&model.User{}, &model.Post{}, &model.PostImage{}, &model.Comment{}); err != nil {
+		if err := tx.AutoMigrate(&model.User{}, &model.Post{}, &model.Comment{}); err != nil {
 			return fmt.Errorf("auto migrate: %w", err)
 		}
 		return tx.Migrator().DropTable("schema_migrations")

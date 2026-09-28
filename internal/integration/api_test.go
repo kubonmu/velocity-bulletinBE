@@ -20,7 +20,6 @@ import (
 	"github.com/m161awm2/velocity-bulletinBE/internal/httpapi"
 	"github.com/m161awm2/velocity-bulletinBE/internal/service"
 	"github.com/m161awm2/velocity-bulletinBE/internal/store"
-	"github.com/m161awm2/velocity-bulletinBE/internal/upload"
 )
 
 func TestRegisterPostCRUDAndAuthorization(t *testing.T) {
@@ -40,19 +39,15 @@ func TestRegisterPostCRUDAndAuthorization(t *testing.T) {
 		t.Fatalf("auto migrate: %v", err)
 	}
 	cleanup := func() {
-		if err := db.Exec("TRUNCATE comments, post_images, posts, users CASCADE").Error; err != nil {
+		if err := db.Exec("TRUNCATE comments, posts, users CASCADE").Error; err != nil {
 			t.Errorf("cleanup: %v", err)
 		}
 	}
 	cleanup()
 	t.Cleanup(cleanup)
 	st := store.New(db)
-	uploads, err := upload.New(context.Background(), "ap-northeast-2", "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
 	gin.SetMode(gin.TestMode)
-	router := httpapi.New(service.New(st, ""), st, auth.New("01234567890123456789012345678901", time.Hour), uploads, slog.New(slog.NewJSONHandler(io.Discard, nil)), []string{"http://localhost:3000"})
+	router := httpapi.New(service.New(st), st, auth.New("01234567890123456789012345678901", time.Hour), slog.New(slog.NewJSONHandler(io.Discard, nil)), []string{"http://localhost:3000"})
 
 	ownerToken := register(t, router, "owner@example.com", "Owner")
 	otherToken := register(t, router, "other@example.com", "Other")

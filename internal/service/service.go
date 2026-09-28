@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
-	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
@@ -23,12 +22,11 @@ var (
 )
 
 type Service struct {
-	store        *store.Store
-	imageBaseURL string
+	store *store.Store
 }
 
-func New(st *store.Store, imageBaseURL string) *Service {
-	return &Service{store: st, imageBaseURL: strings.TrimRight(imageBaseURL, "/")}
+func New(st *store.Store) *Service {
+	return &Service{store: st}
 }
 
 func (s *Service) Register(ctx context.Context, email, displayName, password string) (*model.User, error) {
@@ -87,34 +85,6 @@ func (s *Service) DeleteProfile(ctx context.Context, id uuid.UUID) error {
 	return s.store.DeleteUser(ctx, id)
 }
 
-type ImageInput struct {
-	ObjectKey string `json:"objectKey"`
-}
-
-var objectKeyPattern = regexp.MustCompile(`^media/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|png|webp)$`)
-
-func (s *Service) publicURL(objectKey string) string {
-	if s.imageBaseURL == "" {
-		return objectKey
-	}
-	return s.imageBaseURL + "/" + objectKey
-}
-
-func (s *Service) images(postID uuid.UUID, input []ImageInput) ([]model.PostImage, error) {
-	if len(input) > 5 {
-		return nil, ErrInvalid
-	}
-	result := make([]model.PostImage, 0, len(input))
-	for position, image := range input {
-		objectKey := strings.TrimSpace(image.ObjectKey)
-		if !objectKeyPattern.MatchString(objectKey) {
-			return nil, ErrInvalid
-		}
-		result = append(result, model.PostImage{PostID: postID, ObjectKey: objectKey, URL: s.publicURL(objectKey), Position: position})
-	}
-	return result, nil
-}
-
 func validatePost(title, body string, category model.Category) error {
 	if len(strings.TrimSpace(title)) < 2 || len(title) > 200 || len(strings.TrimSpace(body)) < 1 || !category.Valid() {
 		return ErrInvalid
@@ -123,16 +93,11 @@ func validatePost(title, body string, category model.Category) error {
 	return nil
 }
 
-func (s *Service) CreatePost(ctx context.Context, actor *model.User, title, body string, category model.Category, imageInput []ImageInput) (*model.Post, error) {
+func (s *Service) CreatePost(ctx context.Context, actor *model.User, title, body string, category model.Category) (*model.Post, error) {
 	if err := validatePost(title, body, category); err != nil {
 		return nil, err
 	}
 	post := &model.Post{ID: uuid.New(), AuthorID: actor.ID, Title: strings.TrimSpace(title), Body: strings.TrimSpace(body), Category: category}
-	var err error
-	post.Images, err = s.images(post.ID, imageInput)
-	if err != nil {
-		return nil, err
-	}
 	if err := s.store.CreatePost(ctx, post); err != nil {
 		return nil, err
 	}
@@ -155,7 +120,7 @@ func canModify(owner uuid.UUID, actor *model.User) bool {
 	return owner == actor.ID || actor.Role == model.RoleAdmin
 }
 
-func (s *Service) UpdatePost(ctx context.Context, actor *model.User, id uuid.UUID, title, body string, category model.Category, imageInput *[]ImageInput) (*model.Post, error) {
+func (s *Service) UpdatePost(ctx context.Context, actor *model.User, id uuid.UUID, title, body string, category model.Category) (*model.Post, error) {
 	post, err := s.store.PostByID(ctx, id)
 	if store.IsNotFound(err) {
 		return nil, ErrNotFound
@@ -170,13 +135,7 @@ func (s *Service) UpdatePost(ctx context.Context, actor *model.User, id uuid.UUI
 		return nil, err
 	}
 	post.Title, post.Body, post.Category = strings.TrimSpace(title), strings.TrimSpace(body), category
-	if imageInput != nil {
-		post.Images, err = s.images(post.ID, *imageInput)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if err := s.store.UpdatePost(ctx, post, imageInput != nil); err != nil {
+	if err := s.store.UpdatePost(ctx, post); err != nil {
 		return nil, err
 	}
 	return s.store.PostByID(ctx, id)
