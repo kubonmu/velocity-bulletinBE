@@ -10,7 +10,6 @@ import (
 )
 
 type Config struct {
-	Environment       string
 	HTTPAddr          string
 	DatabaseURL       string
 	MigrationDBURL    string
@@ -39,7 +38,6 @@ func LoadDatabase() (Config, error) {
 
 func load(requireJWT bool) (Config, error) {
 	cfg := Config{
-		Environment:     env("APP_ENV", "development"),
 		HTTPAddr:        env("HTTP_ADDR", ":8080"),
 		DatabaseURL:     strings.TrimSpace(os.Getenv("DATABASE_URL")),
 		MigrationDBURL:  strings.TrimSpace(os.Getenv("MIGRATION_DATABASE_URL")),
@@ -125,5 +123,5 @@ func envDuration(key string, fallback time.Duration) (time.Duration, error) {
 }
 
 func (c Config) String() string {
-	return fmt.Sprintf("env=%s addr=%s uploads=%t", c.Environment, c.HTTPAddr, c.UploadsEnabled())
+	return fmt.Sprintf("addr=%s uploads=%t", c.HTTPAddr, c.UploadsEnabled())
 }
