@@ -32,7 +32,6 @@ func New(svc *service.Service, st *store.Store, tokens *auth.Manager, logger *sl
 	r.Use(a.requestID(), a.accessLog(), gin.Recovery(), cors(corsOrigins), bodyLimit(1<<20))
 	r.GET("/health/live", a.live)
 	r.GET("/health/ready", a.ready)
-	r.StaticFile("/openapi.yaml", "./api/openapi.yaml")
 
 	v1 := r.Group("/api/v1")
 	v1.POST("/auth/register", a.register)

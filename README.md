@@ -25,7 +25,7 @@ go run ./cmd/seed
 go run ./cmd/server
 ```
 
-API는 `http://localhost:8080`에서 대기하며, OpenAPI 문서는 `http://localhost:8080/openapi.yaml`에서 제공됩니다.
+API는 `http://localhost:8080`에서 대기합니다.
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/register \
