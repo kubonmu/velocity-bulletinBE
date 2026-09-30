@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"log/slog"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,17 +19,16 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
+	logger := log.New(os.Stdout, "", log.LstdFlags)
 	cfg, err := config.Load()
 	if err != nil {
-		logger.Error("invalid configuration", "error", err)
+		logger.Println("invalid configuration:", err)
 		os.Exit(1)
 	}
 	ctx := context.Background()
 	db, err := database.Open(ctx, cfg)
 	if err != nil {
-		logger.Error("database startup failed", "error", err)
+		logger.Println("database startup failed:", err)
 		os.Exit(1)
 	}
 	st := store.New(db)
@@ -42,7 +41,7 @@ func main() {
 
 	serverErrors := make(chan error, 1)
 	go func() {
-		logger.Info("server starting", "config", cfg.String())
+		logger.Println("server starting", "config", cfg.String())
 		serverErrors <- server.ListenAndServe()
 	}()
 
@@ -50,18 +49,18 @@ func main() {
 	defer stop()
 	select {
 	case <-shutdownSignal.Done():
-		logger.Info("shutdown signal received")
+		logger.Println("shutdown signal received")
 	case err := <-serverErrors:
 		if !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("server stopped unexpectedly", "error", err)
+			logger.Println("server stopped unexpectedly:", err)
 			os.Exit(1)
 		}
 	}
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error("graceful shutdown failed", "error", err)
+		logger.Println("graceful shutdown failed:", err)
 		os.Exit(1)
 	}
-	logger.Info("server stopped")
+	logger.Println("server stopped")
 }

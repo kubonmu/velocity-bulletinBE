@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log/slog"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -47,7 +47,7 @@ func TestRegisterPostCRUDAndAuthorization(t *testing.T) {
 	t.Cleanup(cleanup)
 	st := store.New(db)
 	gin.SetMode(gin.TestMode)
-	router := httpapi.New(service.New(st), st, auth.New("01234567890123456789012345678901", time.Hour), slog.New(slog.NewJSONHandler(io.Discard, nil)), []string{"http://localhost:3000"})
+	router := httpapi.New(service.New(st), st, auth.New("01234567890123456789012345678901", time.Hour), log.New(io.Discard, "", 0), []string{"http://localhost:3000"})
 
 	ownerToken := register(t, router, "owner@example.com", "Owner")
 	otherToken := register(t, router, "other@example.com", "Other")

@@ -3,7 +3,7 @@ package httpapi
 import (
 	"encoding/json"
 	"io"
-	"log/slog"
+	"log"
 	"net/http/httptest"
 	"testing"
 
@@ -11,7 +11,7 @@ import (
 )
 
 func TestRemovedPostFeatures(t *testing.T) {
-	router := New(nil, nil, nil, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
+	router := New(nil, nil, nil, log.New(io.Discard, "", 0), nil)
 	for _, tc := range []struct {
 		method, path string
 		status       int

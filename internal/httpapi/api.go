@@ -3,7 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
-	"log/slog"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,10 +23,10 @@ type API struct {
 	service *service.Service
 	store   *store.Store
 	tokens  *auth.Manager
-	logger  *slog.Logger
+	logger  *log.Logger
 }
 
-func New(svc *service.Service, st *store.Store, tokens *auth.Manager, logger *slog.Logger, corsOrigins []string) *gin.Engine {
+func New(svc *service.Service, st *store.Store, tokens *auth.Manager, logger *log.Logger, corsOrigins []string) *gin.Engine {
 	a := &API{service: svc, store: st, tokens: tokens, logger: logger}
 	r := gin.New()
 	r.Use(a.requestID(), a.accessLog(), gin.Recovery(), cors(corsOrigins), bodyLimit(1<<20))
@@ -106,7 +106,7 @@ func serviceError(c *gin.Context, err error) {
 	case errors.Is(err, service.ErrConflict):
 		fail(c, http.StatusConflict, "CONFLICT", "resource already exists")
 	default:
-		slog.ErrorContext(c.Request.Context(), "request failed", "error", err, "requestId", c.GetString("requestId"))
+		log.Println("request failed:", err, "requestId:", c.GetString("requestId"))
 		fail(c, http.StatusInternalServerError, "INTERNAL_ERROR", "internal server error")
 	}
 }
