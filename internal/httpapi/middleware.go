@@ -1,7 +1,6 @@
 package httpapi
 
 import (
-	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -26,11 +25,9 @@ func (a *API) accessLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		started := time.Now()
 		c.Next()
-		a.logger.InfoContext(c.Request.Context(), "http request",
-			slog.String("method", c.Request.Method), slog.String("path", c.Request.URL.Path),
-			slog.Int("status", c.Writer.Status()), slog.Int64("durationMs", time.Since(started).Milliseconds()),
-			slog.String("requestId", c.GetString("requestId")),
-		)
+		a.logger.Printf("http request method=%s path=%s status=%d durationMs=%d requestId=%s",
+			c.Request.Method, c.Request.URL.Path, c.Writer.Status(),
+			time.Since(started).Milliseconds(), c.GetString("requestId"))
 	}
 }
 
